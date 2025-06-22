@@ -1,21 +1,12 @@
                         NEXT AGENDA
 
     UI RELATED:
-    - Folder Name textbox [DONE]
-    - Rename button [DONE]
+    - Undo Button
     - Close button maybe???
     - Popup show folder after renaming????
-    - Button that shows either media inside the media location or media destination [DONE]
 
     FUNCTIONALITIES:
-    - Rename function [DONE]
-    - Folder hierarchy creation function (e.g. Year and Month folder are automatically created inside the folder path based on the event date) [DONE]
-    - Input completeness validation before renaming and moving files to media destination [DONE]
-    - Show Button: Shows items of media location or media destination directory when clicked depending on what is currently being shown in media list [DONE]
-    - Validation in adding media code (notify user if code already exists)
+    - Undo functionality
 
     FIX:
-    - Crashes after viewing another directory when previous directory has selected item on media list [DONE]
-
-    IMPROVEMENTS:
-    - Enhance media list item filtering (Must only accept image and videos)
+    - Make Folder Name textbox editable combobox instead
