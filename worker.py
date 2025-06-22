@@ -1,28 +1,30 @@
-from os import walk, rename, path, makedirs, scandir
+from os import rename, path, makedirs, scandir
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QLabel
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import QObject, Qt, QTimer
 
-supportedFormats = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp", ".heif", ".heic", ".svg", ".eps", ".raw") # Tuple of supported files
+supportedVideoFormats = [".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".rm", ".ogv", ".ts", ".vob", ".divx", ".xvid", ".amv"]
+supportedImageFormats = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".heif", ".heic", ".svg", ".eps", ".ico", ".raw", ".ai", ".exr"]
 
 class Worker(QObject): # QObject makes this class pure-logic only class while still being able to use some widgets
     def __init__(self, inputLayout, mediaLayout, buttonsLayout, parentWidget):
         super().__init__()
         self.inputLayout = inputLayout
         self.mediaLayout = mediaLayout
+        self.buttonsLayout = buttonsLayout
         self.parentWidget = parentWidget
-        self.mediaLocationTextBox = inputLayout.mediaLocationTextBox
-        self.mediaDestinationTextBox = inputLayout.mediaDestinationTextBox
-        self.mediaCodeComboBox = inputLayout.mediaCodeComboBox
-        self.eventFolderNameTextBox = inputLayout.eventFolderNameTextBox
-        self.mediaCode = inputLayout.mediaCodeComboBox
-        self.mediaList = mediaLayout.mediaList
-        self.eventCalendar = inputLayout.eventCalendar
+        self.mediaLocationTextBox = self.inputLayout.mediaLocationTextBox
+        self.mediaDestinationTextBox = self.inputLayout.mediaDestinationTextBox
+        self.mediaCodeComboBox = self.inputLayout.mediaCodeComboBox
+        self.eventFolderNameTextBox = self.inputLayout.eventFolderNameTextBox
+        self.mediaCode = self.inputLayout.mediaCodeComboBox
+        self.mediaList = self.mediaLayout.mediaList
+        self.eventCalendar = self.inputLayout.eventCalendar
         self.eventMonths = ["January", "February", "March", "April",
                         "May", "June", "July", "August",
                         "September", "October", "November", "December"]
-        self.showButton = buttonsLayout.showButton
-        self.doesMemoryExists = parentWidget.doesMemoryExists
+        self.showButton = self.buttonsLayout.showButton
+        self.doesMemoryExists = self.parentWidget.doesMemoryExists
 
         # Fetch media code collection if present
         if self.doesMemoryExists:
@@ -42,12 +44,13 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
             yearFolder = self.eventCalendar.date().year()
             monthFolder = self.eventMonths[self.eventCalendar.date().month() - 1]
             eventFolder = f"{self.eventCalendar.text()}: {self.eventFolderNameTextBox.text()}"
-            mediaNumberStartingCount = self.getCurrentNumberOfMedia() + 1
+            fullNewMediaDestinationDirectory = f"{self.mediaDestinationTextBox.text()}/{yearFolder}/{monthFolder}/{eventFolder}"
+            mediaNumberStartingCount = self.getCurrentNumberOfMedia(fullNewMediaDestinationDirectory) + 1
 
             for mediaFile in sortedMediaToBeRenamed:
                 oldMediaName = f"{self.mediaLocationTextBox.text()}/{mediaFile.name}"
                 _, newMediaNameExtension = path.splitext(oldMediaName) # From os.path; Get the file extension and ignore root directory
-                fullNewMediaDestinationDirectory = f"{self.mediaDestinationTextBox.text()}/{yearFolder}/{monthFolder}/{eventFolder}"
+                
 
                 # Make directory if it does not exists yet
                 if not path.isdir(fullNewMediaDestinationDirectory):
@@ -66,22 +69,18 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
 
                 self.showButton.setText("SHOW MEDIA\nDESTINATION")
                 print("\nRenaming media complete!")
-                # QMessageBox.information(self.parentWidget, "Operation Successful!", "Renaming media complete!")
-                QTimer.singleShot(50, lambda: QMessageBox.information(self.parentWidget, "Operation Successful!", "Renaming media complete!")) # Delays the notification to flush the widgets inside the media container (self.mediaLayout.mediaBox)
+                QTimer.singleShot(50, lambda: QMessageBox.information(self.buttonsLayout, "Operation Successful!", "Renaming media complete!")) # Delays the notification to flush the widgets inside the media container (self.mediaLayout.mediaBox)
             else:
-                QMessageBox.warning(self.parentWidget, "Operation Failed!", "Media Location directory is empty! No media to be renamed.")
+                QMessageBox.warning(self.buttonsLayout, "Operation Failed!", "Media Location directory is empty! No media to be renamed.")
         else:
-            QMessageBox.warning(self.parentWidget, "Operation Failed!", "Make sure all required information are available!")
+            QMessageBox.warning(self.buttonsLayout, "Operation Failed!", "Make sure all required information are available!")
 
-    def getCurrentNumberOfMedia(self):
+    def getCurrentNumberOfMedia(self, fullNewMediaDestinationDirectory):
         mediaCount = 0
-        mediaRoot = self.mediaDestinationTextBox.text()
         
-        if mediaRoot: # mediaLocationTextBox of inputLayout is not empty
-            for _, _, mediaFiles in walk(mediaRoot, topdown=True): # From os.walk; Disregarding root and subdirectories, only counts number of media saved inside the root folder
-                for mediaFile in mediaFiles:
-                    if not mediaFile.lower().endswith(".ini"): # Temporary filter, change it with explicitly allowing picture and video files only 
-                        mediaCount += 1
+        if path.exists(fullNewMediaDestinationDirectory):
+                # Counts the collected media files in the media destination directory
+                mediaCount = len([mediaFile for mediaFile in scandir(fullNewMediaDestinationDirectory) if mediaFile.name.lower().endswith(tuple(supportedImageFormats + supportedVideoFormats))])
         
         return mediaCount
 
@@ -99,22 +98,20 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
 
                 if path.exists(f"{fullNewMediaDestinationDirectory}"): # This means media from media location were already renamed and moved to media destination
                     scannedItems = scandir(fullNewMediaDestinationDirectory) # From os.scandir
-                else: # This means media from media location are still not renamed and moved to media destination
-                    scannedItems = scandir(self.mediaDestinationTextBox.text()) # From os.scandir
                 
-                sortedScannedItems = list(sorted(scannedItems, key=lambda e: e.stat().st_ctime)) # Sort items based on most recent renamed files, oldest on top and newest on bottom.
+                    sortedScannedItems = list(sorted(scannedItems, key=lambda e: e.stat().st_ctime)) # Sort items based on most recent renamed files, oldest on top and newest on bottom.
 
-                for validFile in sortedScannedItems:
-                    if validFile.is_file():
-                        self.mediaList.addItem(validFile.name)
-                
+                    for validFile in sortedScannedItems:
+                        if validFile.name.lower().endswith(tuple(supportedImageFormats + supportedVideoFormats)): # Only accepts supported image and video files
+                            self.mediaList.addItem(validFile.name)
+                    
                 self.showButton.setText("SHOW MEDIA\nLOCATION")
             else:
                 scannedItems = scandir(self.mediaLocationTextBox.text()) # From os.scandir
                 sortedScannedItems = list(sorted(scannedItems, key=lambda e: e.stat().st_mtime)) # Sort items based on last modification time, oldest on top and newest on bottom.
 
                 for validFile in sortedScannedItems:
-                    if validFile.is_file():
+                    if validFile.name.lower().endswith(tuple(supportedImageFormats + supportedVideoFormats)): # Only accepts supported image and video files
                         self.mediaList.addItem(validFile.name)
                 
                 self.showButton.setText("SHOW MEDIA\nDESTINATION")
@@ -131,7 +128,7 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
             sortedScannedItems = list(sorted(scannedItems, key=lambda e: e.stat().st_mtime)) # Sort items based on last modification time, oldest on top and newest on bottom.
 
             for validFile in sortedScannedItems:
-                if validFile.is_file():
+                if validFile.name.lower().endswith(tuple(supportedImageFormats + supportedVideoFormats)): # Only accepts supported image and video files
                     self.mediaList.addItem(validFile.name)
     
     def browseMediaDestinationClicked(self):
@@ -141,21 +138,25 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
             self.mediaDestinationTextBox.setText(selectedDirectory)
     
     def addNewMediaCode(self):
-        newCode, codeAdded = QInputDialog.getText(self.inputLayout, "New Media Code", "") # newCode = string (code name itself); codeAdded = boolean value (True or False)
+        newCode, codeAdded = QInputDialog.getText(self.inputLayout, "New Media Code", "Keep it short.") # newCode = string (code name itself); codeAdded = boolean value (True or False)
         
         if newCode and codeAdded:
             if self.doesMemoryExists: # Appends media code to existing memory file
                 with open("assets/memory/mediaCodeCollection.peomc", "a") as mediaCodeFile:
-                    mediaCodeFile.write("\n" + newCode)
+                    currentMediaCodes = [self.mediaCodeComboBox.itemText(mediaCodeIndex) for mediaCodeIndex in range(self.mediaCodeComboBox.count())] # Makes a list out of the media codes in self.mediaCodeComboBox
+
+                    if newCode.upper() in currentMediaCodes: # Rejects new media code if it already exists
+                        QMessageBox.warning(self.inputLayout, "Operation Failed!", "Media code already exists.")
+                    else:
+                        self.mediaCodeComboBox.addItem(newCode.upper())
+                        mediaCodeFile.write("\n" + newCode.upper())
+                        QMessageBox.information(self.inputLayout, "Operation Successful!", "New media code has been added.")
             else: # Will create fresh memory file and writes media code
                 with open("assets/memory/mediaCodeCollection.peomc", "w") as mediaCodeFile:
-                    mediaCodeFile.write(newCode)
+                    mediaCodeFile.write(newCode.upper())
                     self.memoryExists = True
-            
-            self.mediaCodeComboBox.addItem(newCode)
-            QMessageBox.information(self.parentWidget, "Operation Successful!", "New media code has been added.")
         else:
-            QMessageBox.information(self.parentWidget, "Operation Failed!", "Operation has been cancelled.")
+            QMessageBox.information(self.inputLayout, "Operation Failed!", "Operation has been cancelled.")
     
     def imageSelected(self):
         currentItemSelected = self.mediaList.currentItem()
@@ -177,7 +178,7 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
             if targetMediaDirectory:
                 mediaPath = f"{targetMediaDirectory}/{imageItem}"
 
-                if mediaPath.lower().endswith(supportedFormats): # Show supported media
+                if mediaPath.lower().endswith(tuple(supportedImageFormats + supportedVideoFormats)): # Show supported media
                     mediaPixmap = QPixmap(mediaPath)
                 else: # No preview
                     mediaPixmap = QPixmap("assets/images/no_preview.png")
@@ -198,8 +199,6 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
             
             if itemWidget is not None:
                 itemWidget.deleteLater()
-        
-        self.mediaLayout.mediaBox.update()
 
 class ResponsiveMedia(QLabel):
     # Gets executed upon creating an instance of the class

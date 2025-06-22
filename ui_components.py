@@ -35,7 +35,7 @@ class ApplicationWindow(QWidget):
         # Creating sub layouts of the main layout (input section, media viewer section, action buttons area)
         self.inputLayout = InputLayout()
         self.mediaLayout = MediaLayout()
-        self.buttonsLayout = ActionButtons() # Importing inputLayout through ActionButtons class to pass it on Worker class from worker.py
+        self.buttonsLayout = ActionButtons()
 
         # Setting up worker class
         self.worker = Worker(self.inputLayout, self.mediaLayout, self.buttonsLayout, self)
@@ -70,7 +70,7 @@ class InputLayout(QWidget):
     def addContents(self):
         # Input labels
         self.mediaLocationLabel = QLabel("Media Location:")
-        self.mediaDestinationLabel = QLabel("Media Destination:")
+        self.mediaDestinationLabel = QLabel("Media Root Destination:")
         self.mediaCodeLabel = QLabel("Media Code:")
         self.eventDateLabel = QLabel("Event Date:")
         self.eventFolderNameLabel = QLabel("Folder Name:")
