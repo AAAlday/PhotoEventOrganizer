@@ -1,7 +1,7 @@
 from os import path
 from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButton, QComboBox, QDateEdit, QListWidget, QFrame, QVBoxLayout
-from PyQt6.QtGui import QIcon, QPixmap
-from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import Qt, QDate, QTimer
 from worker import Worker
 
 class ApplicationWindow(QWidget):
@@ -43,7 +43,10 @@ class ApplicationWindow(QWidget):
         # Configuring InputLayout class events
         self.inputLayout.browseMediaLocation.clicked.connect(self.worker.browseMediaLocationClicked)
         self.inputLayout.browseMediaDestination.clicked.connect(self.worker.browseMediaDestinationClicked)
+        self.inputLayout.mediaDestinationTextBox.textChanged.connect(self.worker.showEventDirectories)
         self.inputLayout.addMediaCode.clicked.connect(self.worker.addNewMediaCode)
+        self.inputLayout.eventCalendar.dateChanged.connect(lambda: QTimer.singleShot(50, self.worker.showEventDirectories))
+        self.inputLayout.eventDirectoryNameComboBox.currentIndexChanged.connect(lambda: QTimer.singleShot(50, self.worker.adjustEventDate))
 
         # Configuring MediaLViewer class events
         self.mediaLayout.mediaList.currentItemChanged.connect(self.worker.imageSelected)
@@ -73,23 +76,24 @@ class InputLayout(QWidget):
         self.mediaDestinationLabel = QLabel("Media Root Destination:")
         self.mediaCodeLabel = QLabel("Media Code:")
         self.eventDateLabel = QLabel("Event Date:")
-        self.eventFolderNameLabel = QLabel("Folder Name:")
+        self.eventDirectoryNameLabel = QLabel("Directory Name:")
         self.inputLayout.addWidget(self.mediaLocationLabel, 0, 0)
         self.inputLayout.addWidget(self.mediaDestinationLabel, 1, 0)
         self.inputLayout.addWidget(self.mediaCodeLabel, 2, 0)
         self.inputLayout.addWidget(self.eventDateLabel, 3, 0)
-        self.inputLayout.addWidget(self.eventFolderNameLabel, 4, 0)
+        self.inputLayout.addWidget(self.eventDirectoryNameLabel, 4, 0)
 
         # Input text box
         self.mediaLocationTextBox = QLineEdit(self)
         self.mediaLocationTextBox.setReadOnly(True)
         self.mediaDestinationTextBox = QLineEdit(self)
         self.mediaDestinationTextBox.setReadOnly(True)
-        self.eventFolderNameTextBox = QLineEdit(self)
+        self.eventDirectoryNameComboBox = QComboBox(self)
+        self.eventDirectoryNameComboBox.setEditable(True)
         self.mediaLocationTextBox.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.inputLayout.addWidget(self.mediaLocationTextBox, 0, 1)
         self.inputLayout.addWidget(self.mediaDestinationTextBox, 1, 1)
-        self.inputLayout.addWidget(self.eventFolderNameTextBox, 4, 1)
+        self.inputLayout.addWidget(self.eventDirectoryNameComboBox, 4, 1)
 
         # Path browser buttons
         self.browseMediaLocation = QPushButton("...")
