@@ -9,4 +9,16 @@
     - Undo functionality
 
     FIX:
-    - Make Folder Name textbox editable combobox instead
+    
+
+NEW:
+- Fetches sub directories automatically based on current year and month from the root directory
+- Automatically fetches and sets the date of the chosen event directory in eventDirectoryNameComboBox
+- Automatically fetches media items from chosen event directory in eventDirectoryNameComboBox if it truly exists in the assigned event date
+
+CHANGES:
+- Made the folder name textbox editable combobox instead
+- Minor code refactors (change "folder" to "directory")
+
+BUG FIXES:
+- Hidden files (e.g. .cache files) being detected and renamed
