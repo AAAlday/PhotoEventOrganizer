@@ -1,8 +1,9 @@
 from os import path
 from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButton, QComboBox, QDateEdit, QListWidget, QFrame, QVBoxLayout
 from PyQt6.QtGui import QIcon
-from PyQt6.QtCore import Qt, QDate, QTimer
+from PyQt6.QtCore import Qt, QDate
 from worker import Worker
+from utils import getResourcePath
 
 class ApplicationWindow(QWidget):
     # Gets executed upon creating an instance of the class
@@ -14,8 +15,8 @@ class ApplicationWindow(QWidget):
         self.top = int(geometry.height() * 0.2)
         self.width = int(geometry.width() * 0.5)
         self.height = int(geometry.height() * 0.6)
-        self.icon = "assets/images/app_icon.png"
-        self.memory = "assets/memory/mediaCodeCollection.peomc" # PEOMC stands for Photo Event Organizer Media Code
+        self.icon = getResourcePath("assets/images/app_icon.png")
+        self.memory = getResourcePath("assets/memory/mediaCodeCollection.peomc") # PEOMC stands for Photo Event Organizer Media Code
         self.doesMemoryExists = path.exists(self.memory) # From os.path
         self.createAppWindow()
     
