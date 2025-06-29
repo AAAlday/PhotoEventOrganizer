@@ -1,4 +1,3 @@
-import sys
 from os import rename, path, makedirs, scandir, walk
 from shutil import move
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QLabel
