@@ -1,24 +1,25 @@
                         NEXT AGENDA
 
     UI RELATED:
-    - Undo Button
+    - Undo Button (HELL NAH AIN'T NO WAY CUH MAYBE NEXT TIME BUT NOT TODAY)
     - Close button maybe???
     - Popup show folder after renaming????
 
     FUNCTIONALITIES:
-    - Undo functionality
+    - Undo functionality (HELL NAH AIN'T NO WAY CUH MAYBE NEXT TIME BUT NOT TODAY)
 
-    FIX:
-    
+    TO FIX:
+    - 
+    - Invalid characters management (e.g. '/')
 
 NEW:
-- Fetches sub directories automatically based on current year and month from the root directory
-- Automatically fetches and sets the date of the chosen event directory in eventDirectoryNameComboBox
-- Automatically fetches media items from chosen event directory in eventDirectoryNameComboBox if it truly exists in the assigned event date
+- 
 
 CHANGES:
-- Made the folder name textbox editable combobox instead
-- Minor code refactors (change "folder" to "directory")
+- Minor code blocks rearrangement
 
 BUG FIXES:
-- Hidden files (e.g. .cache files) being detected and renamed
+- Fixed media in target destination not showing after changing the date and setting it to its proper date
+- Fixed OS Error [specifically error no. 18 (Invalid cross device link)]: renaming and moving does not work between 2 different disks
+- getCurrentNumberOfMedia: Fixed media inside actual source directory getting counted if the source directory and target destination directory are same
+- Media Viewer automatically being refreshed when clicking eventDirectoryNameComboBox because its text was set programmatically after selecting date instead of setting the text with dropdown
