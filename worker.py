@@ -1,8 +1,10 @@
+import sys
 from os import rename, path, makedirs, scandir, walk
 from shutil import move
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QLabel
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import QObject, Qt, QTimer, QDate
+from utils import getResourcePath
 
 supportedVideoFormats = [".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".rm", ".ogv", ".ts", ".vob", ".divx", ".xvid", ".amv"]
 supportedImageFormats = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".heif", ".heic", ".svg", ".eps", ".ico", ".raw", ".ai", ".exr"]
@@ -19,6 +21,8 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
         self.mediaCodeComboBox = self.inputLayout.mediaCodeComboBox
         self.eventDirectoryNameComboBox = self.inputLayout.eventDirectoryNameComboBox
         self.mediaCode = self.inputLayout.mediaCodeComboBox
+        self.memory = self.parentWidget.memory
+        self.doesMemoryExists = self.parentWidget.doesMemoryExists
         self.mediaList = self.mediaLayout.mediaList
         self.eventCalendar = self.inputLayout.eventCalendar
         self.eventMonths = ["January", "February", "March", "April",
@@ -26,12 +30,12 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
                         "September", "October", "November", "December"]
         self.__eventDatesCollection = {} # Event dates container of current media root destination for event name referencing based on dates
         self.showButton = self.buttonsLayout.showButton
-        self.doesMemoryExists = self.parentWidget.doesMemoryExists # Flag that determines if media code collection file is already present or not yet
+        # self.doesMemoryExists = self.parentWidget.doesMemoryExists # Flag that determines if media code collection file is already present or not yet
         self.eventDirectoryNameChangedWithDropDown = True # Flag that handles media viewer automatically being refreshed when clicking eventDirectoryNameComboBox because its text was set programmatically after selecting date instead of setting the text with dropdown
 
         # Fetch media code collection if present
         if self.doesMemoryExists:
-            with open("assets/memory/mediaCodeCollection.peomc", "r") as mediaCodeFile:
+            with open(self.memory, "r") as mediaCodeFile:
                 for mediaCode in mediaCodeFile:
                     mediaCode = ''.join(mediaCode.split()) # Removes white spaces including new line for proper displayment. Comment this line and see for yourself
                     self.mediaCodeComboBox.addItem(mediaCode)
@@ -124,23 +128,26 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
     def addNewMediaCode(self):
         newCode, codeAdded = QInputDialog.getText(self.inputLayout, "New Media Code", "Keep it short.") # newCode = string (code name itself); codeAdded = boolean value (True or False)
         
-        if newCode and codeAdded:
-            if self.doesMemoryExists: # Appends media code to existing memory file
-                with open("assets/memory/mediaCodeCollection.peomc", "a") as mediaCodeFile:
-                    currentMediaCodes = [self.mediaCodeComboBox.itemText(mediaCodeIndex) for mediaCodeIndex in range(self.mediaCodeComboBox.count())] # Makes a list out of the media codes in self.mediaCodeComboBox
+        try:
+            if newCode and codeAdded:
+                if self.doesMemoryExists: # Appends media code to existing memory file
+                    with open(getResourcePath("assets/memory/mediaCodeCollection.peomc"), "a") as mediaCodeFile:
+                        currentMediaCodes = [self.mediaCodeComboBox.itemText(mediaCodeIndex) for mediaCodeIndex in range(self.mediaCodeComboBox.count())] # Makes a list out of the media codes in self.mediaCodeComboBox
 
-                    if newCode.upper() in currentMediaCodes: # Rejects new media code if it already exists
-                        QMessageBox.warning(self.inputLayout, "Operation Failed!", "Media code already exists.")
-                    else:
-                        self.mediaCodeComboBox.addItem(newCode.upper())
-                        mediaCodeFile.write("\n" + newCode.upper())
-                        QMessageBox.information(self.inputLayout, "Operation Successful!", "New media code has been added.")
-            else: # Will create fresh memory file and writes media code
-                with open("assets/memory/mediaCodeCollection.peomc", "w") as mediaCodeFile:
-                    mediaCodeFile.write(newCode.upper())
-                    self.memoryExists = True
-        else:
-            QMessageBox.information(self.inputLayout, "Operation Failed!", "Operation has been cancelled.")
+                        if newCode.upper() in currentMediaCodes: # Rejects new media code if it already exists
+                            QMessageBox.warning(self.inputLayout, "Operation Failed!", "Media code already exists.")
+                        else:
+                            self.mediaCodeComboBox.addItem(newCode.upper())
+                            mediaCodeFile.write("\n" + newCode.upper())
+                            QMessageBox.information(self.inputLayout, "Operation Successful!", "New media code has been added.")
+                else: # Will create fresh memory file and writes media code
+                    with open(getResourcePath("assets/memory/mediaCodeCollection.peomc"), "w") as mediaCodeFile:
+                        mediaCodeFile.write(newCode.upper())
+                        self.memoryExists = True
+            else:
+                QMessageBox.information(self.inputLayout, "Operation Failed!", "Operation has been cancelled.")
+        except Exception as e:
+            QMessageBox.information(self.parentWidget, "Error!", f"You got an error that says: {e}")
     
     def adjustEventDate(self):
         if self.eventDirectoryNameComboBox.currentText(): # eventDirectoryName text is not an empty string
@@ -185,7 +192,7 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
                 if mediaPath.lower().endswith(tuple(supportedImageFormats)): # Show supported media (images only for now)
                     mediaPixmap = QPixmap(mediaPath)
                 else: # No preview
-                    mediaPixmap = QPixmap("assets/images/no_preview.png")
+                    mediaPixmap = QPixmap(getResourcePath("assets/images/no_preview.png"))
                 
                 self.mediaLabel = ResponsiveMedia(mediaPixmap) # Contains the adjusted pixmap itself
                 self.mediaLayout.mediaBox.addWidget(self.mediaLabel) # QVBoxLayout where the adjusted pixmap is stored
