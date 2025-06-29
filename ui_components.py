@@ -45,8 +45,8 @@ class ApplicationWindow(QWidget):
         self.inputLayout.browseMediaDestination.clicked.connect(self.worker.browseMediaDestinationClicked)
         self.inputLayout.mediaDestinationTextBox.textChanged.connect(self.worker.showEventDirectories)
         self.inputLayout.addMediaCode.clicked.connect(self.worker.addNewMediaCode)
-        self.inputLayout.eventCalendar.dateChanged.connect(lambda: QTimer.singleShot(50, self.worker.showEventDirectories))
-        self.inputLayout.eventDirectoryNameComboBox.currentIndexChanged.connect(lambda: QTimer.singleShot(50, self.worker.adjustEventDate))
+        self.inputLayout.eventCalendar.dateChanged.connect(self.worker.showEventDirectories)
+        self.inputLayout.eventDirectoryNameComboBox.activated.connect(self.worker.adjustEventDate) # Only gets triggered when eventDirectoryName text was changed with dropdown
 
         # Configuring MediaLViewer class events
         self.mediaLayout.mediaList.currentItemChanged.connect(self.worker.imageSelected)
