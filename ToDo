@@ -3,23 +3,22 @@
     UI RELATED:
     - Undo Button (HELL NAH AIN'T NO WAY CUH MAYBE NEXT TIME BUT NOT TODAY)
     - Close button maybe???
-    - Popup show folder after renaming????
 
     FUNCTIONALITIES:
     - Undo functionality (HELL NAH AIN'T NO WAY CUH MAYBE NEXT TIME BUT NOT TODAY)
+    - Confirmation of renaming media
 
     TO FIX:
     - 
-    - Invalid characters management (e.g. '/')
 
-NEW:
-- 
 
-CHANGES:
-- Minor code blocks rearrangement
+FOR RELEASE v1.0.1:
+    NEW:
+    - 
 
-BUG FIXES:
-- Fixed media in target destination not showing after changing the date and setting it to its proper date
-- Fixed OS Error [specifically error no. 18 (Invalid cross device link)]: renaming and moving does not work between 2 different disks
-- getCurrentNumberOfMedia: Fixed media inside actual source directory getting counted if the source directory and target destination directory are same
-- Media Viewer automatically being refreshed when clicking eventDirectoryNameComboBox because its text was set programmatically after selecting date instead of setting the text with dropdown
+    CHANGES:
+    - 
+
+    BUG FIXES:
+    - Fixed unsanitized event directory name disrupts folder hierarchy [Issue #7]
+    - Added confirmation for renaming media to avoid accidentally renaming
