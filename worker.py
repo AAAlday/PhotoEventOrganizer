@@ -219,37 +219,42 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
             mediaNumberStartingCount = self.getCurrentNumberOfMedia(self.mediaLocationTextBox.text(), self.mediaDestinationTextBox.text()) + 1
 
             if mediaToBeRenamedCount > 0: # There is at least 1 supported media file to be renamed
-                if not path.isdir(fullNewMediaDestinationDirectory): # Make directory if it does not exists yet
-                    makedirs(fullNewMediaDestinationDirectory) # From os.makedirs; makedirs instead of mkdir for nested directories
+                operationConfirmation = QMessageBox.question(self.parentWidget, "Rename Media?", "Are you sure you want to rename media?")
+                
+                if operationConfirmation == QMessageBox.StandardButton.Yes:
+                    if not path.isdir(fullNewMediaDestinationDirectory): # Make directory if it does not exists yet
+                        makedirs(fullNewMediaDestinationDirectory) # From os.makedirs; makedirs instead of mkdir for nested directories
 
-                for mediaFile in sortedMediaToBeRenamed:
-                    oldMediaName = f"{self.mediaLocationTextBox.text()}/{mediaFile.name}"
-                    _, newMediaNameExtension = path.splitext(oldMediaName) # From os.path; Get the file extension and ignore root directory
-                    
-                    if mediaFile.name.lower().endswith(tuple(supportedImageFormats + supportedVideoFormats)): # Only renames supported media files
-                        newMediaName = f"{fullNewMediaDestinationDirectory}/{self.mediaCode.currentText()}_{str(mediaNumberStartingCount)}{newMediaNameExtension}"
+                    for mediaFile in sortedMediaToBeRenamed:
+                        oldMediaName = f"{self.mediaLocationTextBox.text()}/{mediaFile.name}"
+                        _, newMediaNameExtension = path.splitext(oldMediaName) # From os.path; Get the file extension and ignore root directory
+                        
+                        if mediaFile.name.lower().endswith(tuple(supportedImageFormats + supportedVideoFormats)): # Only renames supported media files
+                            newMediaName = f"{fullNewMediaDestinationDirectory}/{self.mediaCode.currentText()}_{str(mediaNumberStartingCount)}{newMediaNameExtension}"
 
-                        # Handles moving and renaming files with care
-                        try:
-                            rename(oldMediaName, newMediaName) # From os.rename
-                            print(f"{mediaFile.name} successfully renamed to {self.mediaCode.currentText()}_{str(mediaNumberStartingCount)}{newMediaNameExtension}")
-                            mediaNumberStartingCount += 1
-                        except OSError as ose: # OS related errors
-                            if ose.errno == 18: # Invalid cross-device link
-                                move(oldMediaName, newMediaName) # From shutil.move (fallback if rename() didn't work)
+                            # Handles moving and renaming files with care
+                            try:
+                                rename(oldMediaName, newMediaName) # From os.rename
                                 print(f"{mediaFile.name} successfully renamed to {self.mediaCode.currentText()}_{str(mediaNumberStartingCount)}{newMediaNameExtension}")
                                 mediaNumberStartingCount += 1
-                            else:
-                                print(f"The error code is: {ose.errno}")
-                        except Exception as e: # General error catching
-                            print(f"You got an error: {e}")
+                            except OSError as ose: # OS related errors
+                                if ose.errno == 18: # Invalid cross-device link
+                                    move(oldMediaName, newMediaName) # From shutil.move (fallback if rename() didn't work)
+                                    print(f"{mediaFile.name} successfully renamed to {self.mediaCode.currentText()}_{str(mediaNumberStartingCount)}{newMediaNameExtension}")
+                                    mediaNumberStartingCount += 1
+                                else:
+                                    print(f"The error code is: {ose.errno}")
+                            except Exception as e: # General error catching
+                                print(f"You got an error: {e}")
 
-                # Cleans media list and media viewer
-                self.mediaList.clear()
-                self.cleanMediaViewer()
-                self.showButton.setText("SHOW MEDIA\nDESTINATION")
-                self.showEventDirectories() # Refreshes event directory names for cases where the previous selected event directory name was sanitized (Changed normal slashes with division slashes to avoid folder hierarchy disruption)
-                QTimer.singleShot(50, lambda: QMessageBox.information(self.buttonsLayout, "Operation Successful!", "Renaming media complete!")) # Delays the notification to flush the widgets inside the media container (self.mediaLayout.mediaBox) by 50ms
+                    # Cleans media list and media viewer and refreshes event directory names
+                    self.mediaList.clear()
+                    self.cleanMediaViewer()
+                    self.showButton.setText("SHOW MEDIA\nDESTINATION")
+                    self.showEventDirectories() # Refreshes event directory names for cases where the previous selected event directory name was sanitized (Changed normal slashes with division slashes to avoid folder hierarchy disruption)
+                    QTimer.singleShot(50, lambda: QMessageBox.information(self.buttonsLayout, "Operation Successful!", "Renaming media complete!")) # Delays the notification to flush the widgets inside the media container (self.mediaLayout.mediaBox) by 50ms
+                else:
+                    QMessageBox.warning(self.buttonsLayout, "Operation Failed!", "Operation was cancelled.")
             else:
                 QMessageBox.warning(self.buttonsLayout, "Operation Failed!", "Media Location directory is empty! No media to be renamed.")
         else:

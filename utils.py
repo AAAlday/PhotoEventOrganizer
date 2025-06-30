@@ -9,4 +9,4 @@ def getResourcePath(relativePath):
             return path.join(path.abspath("."), relativePath)
 
 def sanitizeText(textToBeSanitized):
-     return sub("/", "∕", textToBeSanitized)
+     return sub("/", "∕", textToBeSanitized) # Substitutes normal slashes with division slashes
