@@ -3,7 +3,7 @@ from shutil import move
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QLabel
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import QObject, Qt, QTimer, QDate
-from utils import getResourcePath
+from utils import getResourcePath, sanitizeText
 
 supportedVideoFormats = [".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".rm", ".ogv", ".ts", ".vob", ".divx", ".xvid", ".amv"]
 supportedImageFormats = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".heif", ".heic", ".svg", ".eps", ".ico", ".raw", ".ai", ".exr"]
@@ -64,7 +64,7 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
         if selectedDirectory: # selectedDirectory is not an empty string
             self.mediaDestinationTextBox.setText(selectedDirectory)
 
-    def showEventDirectories(self): # Get back here laturr
+    def showEventDirectories(self):
         yearDirectory, monthDirectory, _ = self.getTargetDirectory()
         eventYear, eventMonth, eventDay = self.eventCalendar.date().year(), self.eventCalendar.date().month(), self.eventCalendar.date().day()
         targetDirectory = f"{self.mediaDestinationTextBox.text()}/{yearDirectory}/{monthDirectory}"
@@ -103,7 +103,7 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
     def getTargetDirectory(self):
         yearDirectory = self.eventCalendar.date().year()
         monthDirectory = self.eventMonths[self.eventCalendar.date().month() - 1]
-        eventDirectory = f"{self.eventCalendar.text()}: {self.eventDirectoryNameComboBox.currentText()}"
+        eventDirectory = f"{self.eventCalendar.text()}: {sanitizeText(self.eventDirectoryNameComboBox.currentText())}"
 
         return yearDirectory, monthDirectory, eventDirectory
     
@@ -243,13 +243,12 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
                                 print(f"The error code is: {ose.errno}")
                         except Exception as e: # General error catching
                             print(f"You got an error: {e}")
-                
+
                 # Cleans media list and media viewer
                 self.mediaList.clear()
                 self.cleanMediaViewer()
-
                 self.showButton.setText("SHOW MEDIA\nDESTINATION")
-                print("\nRenaming media complete!")
+                self.showEventDirectories() # Refreshes event directory names for cases where the previous selected event directory name was sanitized (Changed normal slashes with division slashes to avoid folder hierarchy disruption)
                 QTimer.singleShot(50, lambda: QMessageBox.information(self.buttonsLayout, "Operation Successful!", "Renaming media complete!")) # Delays the notification to flush the widgets inside the media container (self.mediaLayout.mediaBox) by 50ms
             else:
                 QMessageBox.warning(self.buttonsLayout, "Operation Failed!", "Media Location directory is empty! No media to be renamed.")
