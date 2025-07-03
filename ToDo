@@ -6,7 +6,6 @@
 
     FUNCTIONALITIES:
     - Undo functionality (HELL NAH AIN'T NO WAY CUH MAYBE NEXT TIME BUT NOT TODAY)
-    - Confirmation of renaming media
 
     TO FIX:
     - 
@@ -14,11 +13,10 @@
 
 FOR RELEASE v1.0.1:
     NEW:
-    - 
+    - Added first stylesheet theme (Dracula Theme)
 
     CHANGES:
-    - 
+    - Confirms renaming media to avoid accidentally renaming
 
     BUG FIXES:
     - Fixed unsanitized event directory name disrupts folder hierarchy [Issue #7]
-    - Added confirmation for renaming media to avoid accidentally renaming
