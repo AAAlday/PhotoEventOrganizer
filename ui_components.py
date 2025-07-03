@@ -37,6 +37,8 @@ class ApplicationWindow(QWidget):
         self.inputLayout = InputLayout()
         self.mediaLayout = MediaLayout()
         self.buttonsLayout = ActionButtons()
+        styleSheetInstance = StyleSheet(self, self.inputLayout, self.mediaLayout, self.buttonsLayout)
+        styleSheetInstance.setDraculaTheme()
 
         # Setting up worker class
         self.worker = Worker(self.inputLayout, self.mediaLayout, self.buttonsLayout, self)
@@ -74,6 +76,7 @@ class InputLayout(QWidget):
     def addContents(self):
         # Input labels
         self.mediaLocationLabel = QLabel("Media Location:")
+        # self.mediaLocationLabel.setObjectName("hehe") # Testing for stylesheet
         self.mediaDestinationLabel = QLabel("Media Root Destination:")
         self.mediaCodeLabel = QLabel("Media Code:")
         self.eventDateLabel = QLabel("Event Date:")
@@ -98,7 +101,11 @@ class InputLayout(QWidget):
 
         # Path browser buttons
         self.browseMediaLocation = QPushButton("...")
+        self.browseMediaLocation.setMinimumSize(100, 30)
+        self.browseMediaLocation.setMaximumSize(100, 30)
         self.browseMediaDestination = QPushButton("...")
+        self.browseMediaDestination.setMinimumSize(100, 30)
+        self.browseMediaDestination.setMaximumSize(100, 30)
         self.inputLayout.addWidget(self.browseMediaLocation, 0, 2)
         self.inputLayout.addWidget(self.browseMediaDestination, 1, 2)
 
@@ -107,7 +114,9 @@ class InputLayout(QWidget):
         self.inputLayout.addWidget(self.mediaCodeComboBox, 2, 1)
 
         # Add media code button
-        self.addMediaCode = QPushButton("New Code")
+        self.addMediaCode = QPushButton("NEW CODE")
+        self.addMediaCode.setMinimumSize(100, 30)
+        self.addMediaCode.setMaximumSize(100, 30)
         self.inputLayout.addWidget(self.addMediaCode, 2, 2)
 
         # Calendar
@@ -141,6 +150,7 @@ class MediaLayout(QWidget):
 
         # Preview of media selected in the list
         self.mediaBoxFrame = QFrame()
+        self.mediaBoxFrame.setObjectName("mediaBoxFrame") # Added an alias to be modified the frame itself without affecting and accidentally triggering resizeEvent in ResponsiveMedia class
         self.mediaBoxFrame.setFrameShape(QFrame.Shape.Box)
         self.mediaBoxFrame.setLineWidth(2)
 
@@ -176,7 +186,101 @@ class ActionButtons(QWidget):
         self.buttonsLayout.addWidget(self.showButton, 0, 1)
     
     def createRenameButton(self):
-        return QPushButton("RENAME\nMEDIA")
+        renameButton = QPushButton("RENAME\nMEDIA")
+        renameButton.setMaximumWidth(100)
+        return renameButton
     
     def createShowButton(self):
-        return QPushButton("SHOW MEDIA\nDESTINATION")
+        showButton = QPushButton("SHOW MEDIA\nDESTINATION")
+        showButton.setMaximumWidth(100)
+        return showButton
+
+class StyleSheet:
+    def __init__(self, mainLayout, inputLayout, mediaLayout, buttonsLayout):
+        self.mainLayout = mainLayout
+        self.inputLayout = inputLayout
+        self.mediaLayout = mediaLayout
+        self.buttonsLayout = buttonsLayout
+    
+    def setDraculaTheme(self):
+        self.mainLayout.setStyleSheet(
+            """
+            background-color: #282A36;
+            """
+        )
+        self.inputLayout.setStyleSheet(
+            """
+            QLabel{
+                font-size: 15px;
+                font-weight: bold;
+                color: #F8F8F2;
+            }
+            QLineEdit{
+                font-size: 15px;
+                background-color: #233044;
+                border: 3px solid #44475A;
+                border-radius: 5px;
+            }
+            QDateEdit{
+                background-color: #233044;
+                color: #F8F8F2;
+                font-weight: bold;
+                border: 3px solid #44475A;
+                border-radius: 5px;
+            }
+            QComboBox{
+                background-color: #233044;
+                font-weight: bold;
+                color: #F8F8F2;
+                border: 3px solid #44475A;
+                border-radius: 5px;
+            }
+            QPushButton{
+                background-color: #6272A4;
+                color: #F8F8F2;
+                font-weight: bold;
+                border: 3px solid #44475A;
+                border-radius: 5px;
+            }
+            """
+        )
+        self.mediaLayout.setStyleSheet(
+            """
+            QListWidget{
+                border: 5px solid #44475A;
+                border-radius: 10px;
+            }
+            QListWidget::item{
+                color: #F8F8F2;
+                padding: 10px 20px;
+            }
+            QFrame#mediaBoxFrame{ /* Modifying the mediaBoxFrame itself only, not the objects that inherits QFrame properties */
+                background-color: #282A36;
+                border: 5px solid #44475A;
+                border-radius: 10px;
+            }
+            QScrollBar:vertical{ /* Entire vertical scroll bar track */
+                background-color: #233044;
+            }
+            QScrollBar::handle:vertical{ /* The draggable vertical thumb */
+                background-color: #6272A4;
+            }
+            QScrollBar:horizontal{ /* Entire horizontal scroll bar track */
+                background-color: #233044;
+            }
+            QScrollBar::handle:horizontal{ /* The draggable horizontal thumb */
+                background-color: #6272A4;
+            }
+            """
+        )
+        self.buttonsLayout.setStyleSheet(
+            """
+            QPushButton{
+                background-color: #6272A4;
+                color: #F8F8F2;
+                font-weight: bold;
+                border: 3px solid #44475A;
+                border-radius: 5px;
+            }
+            """
+        )
