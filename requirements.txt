@@ -6,3 +6,5 @@ PyQt6==6.9.1
 PyQt6-Qt6==6.9.1
 PyQt6_sip==13.10.2
 setuptools==80.9.0
+pillow==10.4.0
+pillow-heif==0.17.0
