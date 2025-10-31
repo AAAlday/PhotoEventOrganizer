@@ -2,8 +2,14 @@ from os import rename, path, makedirs, scandir, walk
 from shutil import move
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QLabel
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import QObject, Qt, QTimer, QDate
+from PyQt6.QtCore import QObject, Qt, QTimer, QDate, QByteArray, QBuffer
 from utils import getResourcePath, sanitizeText
+from PIL import Image
+import pillow_heif
+import os
+
+# Register HEIC opener once at module level
+pillow_heif.register_heif_opener()
 
 supportedVideoFormats = [".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".3gp", ".m4v", ".rm", ".ogv", ".ts", ".vob", ".divx", ".xvid", ".amv"]
 supportedImageFormats = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".heif", ".heic", ".svg", ".eps", ".ico", ".raw", ".ai", ".exr"]
@@ -176,26 +182,43 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
         currentItemSelected = self.mediaList.currentItem()
         self.cleanMediaViewer()
 
-        if self.showButton.text() == "SHOW MEDIA\nLOCATION": # The user is currently viewing contents of media destination directory
+        if self.showButton.text() == "SHOW MEDIA\nLOCATION":
             yearDirectory, monthDirectory, eventDirectory = self.getTargetDirectory()
             targetMediaDirectory = f"{self.mediaDestinationTextBox.text()}/{yearDirectory}/{monthDirectory}/{eventDirectory}"
-        else: # The user is currently viewing contents of media location directory
+        else:
             targetMediaDirectory = self.mediaLocationTextBox.text()
-        
-        if currentItemSelected is not None: # User successfully selected an item
+
+        if currentItemSelected is not None:
             imageItem = self.mediaList.currentItem().text()
 
-            if targetMediaDirectory: # targetMediaDirectory is not an empty string
+            if targetMediaDirectory:
                 mediaPath = f"{targetMediaDirectory}/{imageItem}"
+                ext = os.path.splitext(mediaPath)[1].lower()
 
-                if mediaPath.lower().endswith(tuple(supportedImageFormats)): # Show supported media (images only for now)
+                # ✅ Handle HEIC/HEIF images via Pillow
+                if ext in [".heic", ".heif"]:
+                    try:
+                        image = Image.open(mediaPath)
+                        buf = QByteArray()
+                        buffer = QBuffer(buf)
+                        buffer.open(QBuffer.OpenModeFlag.WriteOnly)
+                        image.save(buffer, format="PNG")
+                        mediaPixmap = QPixmap()
+                        mediaPixmap.loadFromData(buf)
+                    except Exception as e:
+                        print(f"Error loading HEIC image: {e}")
+                        mediaPixmap = QPixmap(getResourcePath("assets/images/no_preview.png"))
+
+                elif ext in supportedImageFormats:
                     mediaPixmap = QPixmap(mediaPath)
-                else: # No preview
+
+                else:
                     mediaPixmap = QPixmap(getResourcePath("assets/images/no_preview.png"))
-                
-                self.mediaLabel = ResponsiveMedia(mediaPixmap) # Contains the adjusted pixmap itself
-                self.mediaLayout.mediaBox.addWidget(self.mediaLabel) # QVBoxLayout where the adjusted pixmap is stored
-                self.mediaLayout.mediaBoxFrame.setLayout(self.mediaLayout.mediaBox) # QFrame where the QVBoxLayout is stored for framing purposes
+
+                # Display the image
+                self.mediaLabel = ResponsiveMedia(mediaPixmap)
+                self.mediaLayout.mediaBox.addWidget(self.mediaLabel)
+                self.mediaLayout.mediaBoxFrame.setLayout(self.mediaLayout.mediaBox)
     
     def cleanMediaViewer(self):
         # Deletes all widgets added to mediaBox layout
