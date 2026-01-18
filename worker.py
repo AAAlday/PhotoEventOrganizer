@@ -109,7 +109,7 @@ class Worker(QObject): # QObject makes this class pure-logic only class while st
     def getTargetDirectory(self):
         yearDirectory = self.eventCalendar.date().year()
         monthDirectory = self.eventMonths[self.eventCalendar.date().month() - 1]
-        eventDirectory = f"{self.eventCalendar.text()}: {sanitizeText(self.eventDirectoryNameComboBox.currentText())}"
+        eventDirectory = f"{self.eventCalendar.text()}_{sanitizeText(self.eventDirectoryNameComboBox.currentText())}"
 
         return yearDirectory, monthDirectory, eventDirectory
     
